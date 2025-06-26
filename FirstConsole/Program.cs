@@ -2,26 +2,22 @@
 
 namespace FirstConsole
 {
-    public enum AttackType
-    {
-        Damage,
-        Self,
-        Heal
-    }
     public class Program
     {        
         static void Main(string[] args)
         {
             Input input = new Input();
             ConsoleWriter consoleWriter = new ConsoleWriter();
-            Unit playerUnit = new Unit(50, 1000) { Armor = 15f };
-            Unit enemyUnit = new Unit(55, 2000) { Armor = 25f };
+            Unit playerUnit = new Unit(50, 1000) { Armor = 15f, Name = "Игрок" };
+            Unit enemyUnit = new Unit(55, 2000) { Armor = 25f, Name = "Противник" };
 
 
             Console.Write("Введите ваше имя: ");
             string name = Console.ReadLine();
+            playerUnit.Name = name;
+
             Player player = new Player(name, playerUnit, enemyUnit, input, consoleWriter);
-            Enemy enemy = new Enemy(playerUnit, enemyUnit, input);
+            Enemy enemy = new Enemy(playerUnit, enemyUnit, input, consoleWriter);
 
             Console.Clear();
             Console.WriteLine($"Добро пожаловать в игру, {name}.\n");
@@ -29,18 +25,20 @@ namespace FirstConsole
             while (playerUnit.IsAlive && enemyUnit.IsAlive)
             {
                 player.Turn();
+                if (!enemyUnit.IsAlive)
+                    break;
                 enemy.Turn();
+                if (!playerUnit.IsAlive)
+                    break;
 
-                consoleWriter.WriteDamagesFromTo(enemyUnit.DamageHistory, name, "Enemy");
-                consoleWriter.WriteDamagesFromTo(playerUnit.DamageHistory, "Enemy", name);
+                consoleWriter.WriteDamagesFromTo(enemyUnit.DamageHistory, playerUnit.Name, enemyUnit.Name);
+                consoleWriter.WriteDamagesFromTo(playerUnit.DamageHistory, enemyUnit.Name, playerUnit.Name);
 
                 EndTurn();
             }
 
             Console.WriteLine("\nИгра окончена!");
-            Console.WriteLine(playerUnit.IsAlive
-                ? "Вы победили!"
-                : "Противник победил!");
+            Console.WriteLine(playerUnit.IsAlive ? "Вы победили!" : "Противник победил!");
 
             void EndTurn()
             {

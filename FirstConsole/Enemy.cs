@@ -3,54 +3,43 @@ using System.Collections.Generic;
 
 namespace FirstConsole
 {
-    internal class Enemy
+    public class Enemy : Character
     {
-        
-        private Input input;        
-        private int secondAbilityModifier;
-        private int thirdAbilityValue;
+        private readonly int _secondAbilityModifier = 3;
+        private readonly int _thirdAbilityValue = 100;
+        private readonly Weapon _enemyWeapon;
+        private const int AbilitiesCount = 3;
 
-        private Unit PlayerUnit { get; }
-        private Unit EnemyUnit { get; }
-        private int AbilitiesCount { get; }
-
-        private Weapon enemyWeapon;
-
-        public Enemy(Unit playerUnit, Unit enemyUnit, Input input)
+        public Enemy(Unit playerUnit, Unit enemyUnit, Input input, ConsoleWriter writer)
+            : base(enemyUnit, playerUnit, input, writer)
         {
-            PlayerUnit = playerUnit;
-            EnemyUnit = enemyUnit;
-            this.input = input;
-            AbilitiesCount = 3;
-            secondAbilityModifier = 3;
-            thirdAbilityValue = 100;
-
-            enemyWeapon = new Weapon {
+            _enemyWeapon = new Weapon
+            {
                 Damage = enemyUnit.Damage,
                 Effect = EffectType.Fire
             };
         }
         
-        public void Turn()
+        public override void Turn()
         {
-            switch (input.GetAICommandNumber(AbilitiesCount))
+            switch (InputHandler.GetAICommandNumber(AbilitiesCount))
             {
                 case 1:
-                    PlayerUnit.TakeDamage(enemyWeapon, EnemyUnit);
+                   ApplyWeaponDamage(_enemyWeapon, MyUnit, OpponentUnit);
                     break;
                 case 2:
-                    int modifiedDamage = PlayerUnit.Damage * secondAbilityModifier;
-                    EnemyUnit.TakeDamage(EnemyUnit.Damage, EnemyUnit);
-                    PlayerUnit.TakeDamage(modifiedDamage, EnemyUnit);
+                    int modifiedDamage = OpponentUnit.Damage * _secondAbilityModifier;
+                    ApplyDamage(MyUnit.Damage, MyUnit, MyUnit);
+                    ApplyDamage(modifiedDamage, MyUnit, OpponentUnit);
                     break;
                 case 3:
-                    if (EnemyUnit.LastDamageFromWeapon)
+                    if (MyUnit.LastDamageFromWeapon)
                     {
-                        EnemyUnit.TakeDamage(thirdAbilityValue, EnemyUnit);
+                        ApplyDamage(_thirdAbilityValue, MyUnit, MyUnit);
                     }
                     else
                     {
-                        EnemyUnit.TakeDamage(-thirdAbilityValue, EnemyUnit);
+                        ApplyDamage(-_thirdAbilityValue, MyUnit, MyUnit);
                     }
                     break;
             }

@@ -1,50 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Generic;
 namespace FirstConsole
 {
-    public enum EffectType
-    {
-        None,
-        Ice,
-        Fire
-    }
-
-    public class Weapon
-    {
-        public int Damage { get; set; }
-        public EffectType Effect { get; set; } = EffectType.None;
-    }
-    public static class DamageCalculator
-    {
-        public static int CalculateAttackWithSpecialEffect(EffectType effectType, float damage, float armor)
-        {
-            float finalDamage = damage;
-
-            switch (effectType)
-            {
-                case EffectType.Ice:
-                    finalDamage += 5;
-                    armor = 0;
-                    break;
-                case EffectType.Fire:
-                    finalDamage += 10;
-                    break;
-            }
-
-            if (armor > 0)
-            {
-                float damageReduction = finalDamage * (armor / 100f);
-                finalDamage -= damageReduction;
-            }
-
-            return (int)MathF.Round(finalDamage);
-        }
-    }
-
     public class Unit
     {
         private int damage;
@@ -53,10 +9,11 @@ namespace FirstConsole
         private bool isAlive = true;
         private int shieldCount = 0;
         private bool lastDamageFromWeapon = false;
-        private List<string> abilityDescriptions = new List<string>();
+        private readonly List<string> abilityDescriptions = new List<string>();
+        private readonly Dictionary<AttackType, List<float>> damageHistory = new Dictionary<AttackType, List<float>>();
+        public IReadOnlyDictionary<AttackType, List<float>> DamageHistory => damageHistory;
 
-        private Dictionary<AttackType, List<float>> damageHistory = new Dictionary<AttackType, List<float>>();
-
+        public string Name { get; set; }
         public int Damage => damage;
         public int MaxHealth => maxHealth;
         public bool LastDamageFromWeapon => lastDamageFromWeapon;
@@ -72,25 +29,21 @@ namespace FirstConsole
                     isAlive = false;
                     currentHealth = 0;
                 }
-                else if (currentHealth > maxHealth)
+                else                
                 {
-                    currentHealth = maxHealth;
+                    isAlive = true;
+                    if (currentHealth > maxHealth)
+                        currentHealth = maxHealth;
                 }
             }
         }
-        public bool IsAlive
-        {
-            get => isAlive;
-            set => isAlive = value;
-        }
-
+        public bool IsAlive => isAlive;
         public int ShieldCount
         {
             get => shieldCount;
             set => shieldCount = value;
         }
 
-        public Dictionary<AttackType, List<float>> DamageHistory => damageHistory;
         public bool InShield => shieldCount > 0;
         public int AbilityCount => abilityDescriptions.Count;
 
@@ -98,7 +51,6 @@ namespace FirstConsole
         {
             this.damage = damage;
             this.maxHealth = maxHealth;
-
             currentHealth = maxHealth;
 
             damageHistory[AttackType.Damage] = new List<float>();
@@ -140,13 +92,7 @@ namespace FirstConsole
         }
 
         public void TakeDamage(Weapon weapon, Unit origin)
-        {
-            if (ShieldCount > 0)
-            {
-                ShieldCount--;
-                damageHistory[AttackType.Damage].Add(0);
-                return;
-            }
+        {           
             int calculatedDamage = DamageCalculator.CalculateAttackWithSpecialEffect(
                 weapon.Effect,
                 weapon.Damage,

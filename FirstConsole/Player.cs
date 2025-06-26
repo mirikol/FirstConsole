@@ -2,56 +2,50 @@
 
 namespace FirstConsole
 {
-    internal class Player
-    {        
-        private Input input;
-        private ConsoleWriter writer;
-        private readonly Weapon playerWeapon;
-        private readonly Weapon fireballWeapon;
-        private string Name { get; }
-        private Unit PlayerUnit { get; }
-        private Unit EnemyUnit { get; }
-
-        public int FireballDamage => fireballWeapon.Damage;
+    public class Player : Character
+    {
+        private readonly Weapon _playerWeapon;
+        private readonly Weapon _fireballWeapon;
+        public string Name { get; }
+        public int FireballDamage => _fireballWeapon.Damage;
         public Player(string name, Unit playerUnit, Unit enemyUnit, Input input, ConsoleWriter writer)
+            : base(playerUnit, enemyUnit, input, writer)
         {
             Name = name;
-            PlayerUnit = playerUnit;
-            EnemyUnit = enemyUnit;
-            this.input = input;
-            this.writer = writer;
 
-            fireballWeapon = new Weapon {Damage = 200};
+            _fireballWeapon = new Weapon {Damage = 200};
 
-            playerWeapon = new Weapon {
+            _playerWeapon = new Weapon
+            {
                 Damage = playerUnit.Damage,
                 Effect = EffectType.Ice
             };
 
-            PlayerUnit.AddAbilityDescriptions($"Ударить оружием (урон {PlayerUnit.Damage} + лёд)");
-            PlayerUnit.AddAbilityDescriptions($"Щит: следующая атака противника не наносит урона");
-            PlayerUnit.AddAbilityDescriptions($"Огненный шар: наносит урон в размере {FireballDamage} единиц");
+            MyUnit.AddAbilityDescriptions($"Ударить оружием (урон {MyUnit.Damage} + лёд)");
+            MyUnit.AddAbilityDescriptions($"Щит: следующая атака противника не наносит урона");
+            MyUnit.AddAbilityDescriptions($"Огненный шар: наносит урон в размере {FireballDamage} единиц");
         }
 
-        public void Turn()
+        public override void Turn()
         {
-            writer.WriteUnitHealth("Ваше здоровье", PlayerUnit);
-            writer.WriteUnitHealth("Здоровье противника", EnemyUnit);
+            Writer.WriteUnitHealth("Ваше здоровье", MyUnit);
+            Writer.WriteUnitHealth("Здоровье противника", OpponentUnit);
             Console.WriteLine();
 
-            writer.WriteAllAbilities($"{Name}! Выберите действие: ", PlayerUnit);
+            Writer.WriteAllAbilities($"{Name}! Выберите действие: ", MyUnit);
 
 
-            switch (input.PlayerCommandNumber)
+            switch (InputHandler.PlayerCommandNumber)
             {
                 case 1:
-                    EnemyUnit.TakeDamage(playerWeapon, PlayerUnit);
+                    ApplyWeaponDamage(_playerWeapon, MyUnit, OpponentUnit);
                     break;
                 case 2:
-                    PlayerUnit.ShieldCount =1;
+                    MyUnit.ShieldCount = 1;
+                    Writer.WriteShieldActivation(Name);
                     break;
                 case 3:                   
-                    EnemyUnit.TakeDamage(fireballWeapon, PlayerUnit);
+                    ApplyWeaponDamage(_fireballWeapon, MyUnit, OpponentUnit);
                     break;
             }
         }

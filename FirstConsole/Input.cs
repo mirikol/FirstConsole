@@ -2,7 +2,7 @@
 
 namespace FirstConsole
 {
-    internal class Input
+    public class Input
     {
         private Random random = new Random();
 
