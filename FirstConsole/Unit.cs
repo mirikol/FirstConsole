@@ -3,7 +3,7 @@ namespace FirstConsole
 {
     public class Unit
     {
-        private int damage;
+        private int _damage;
         private int maxHealth;
         private int currentHealth;
         private bool isAlive = true;
@@ -14,7 +14,11 @@ namespace FirstConsole
         public IReadOnlyDictionary<AttackType, List<float>> DamageHistory => damageHistory;
 
         public string Name { get; set; }
-        public int Damage => damage;
+        public int Damage
+        {
+            get => _damage;
+            protected set => _damage = value;
+        }
         public int MaxHealth => maxHealth;
         public bool LastDamageFromWeapon => lastDamageFromWeapon;
         public float Armor { get; set; }
@@ -49,7 +53,7 @@ namespace FirstConsole
 
         public Unit(int damage, int maxHealth)
         {
-            this.damage = damage;
+            _damage = damage;
             this.maxHealth = maxHealth;
             currentHealth = maxHealth;
 
@@ -57,8 +61,8 @@ namespace FirstConsole
             damageHistory[AttackType.Self] = new List<float>();
             damageHistory[AttackType.Heal] = new List<float>();
         }
-
-        private void ProcessDamage(int damage, Unit origin, bool isWeaponDamage)
+                
+        public virtual void TakeDamage(int damage, Unit origin, bool isWeaponDamage)
         {
             lastDamageFromWeapon = isWeaponDamage;
 
@@ -79,31 +83,81 @@ namespace FirstConsole
 
             CurrentHealth -= damage;
             damageHistory[attackType].Add(damage);
-        }
 
-        public void TakeDamage(int damage, Unit origin)
-        {
-            int calculatedDamage = DamageCalculator.CalculateAttackWithSpecialEffect(
-                EffectType.None,
-                damage,
-                Armor
-            );
-            ProcessDamage(calculatedDamage, origin, false);
         }
 
         public void TakeDamage(Weapon weapon, Unit origin)
-        {           
-            int calculatedDamage = DamageCalculator.CalculateAttackWithSpecialEffect(
+        {
+            TakeDamage(
+                DamageCalculator.CalculateAttackWithSpecialEffect(
                 weapon.Effect,
                 weapon.Damage,
                 Armor
-            );
-            ProcessDamage(calculatedDamage, origin, true);
+            ),
+            origin,
+            true
+        );
         }
 
         public string GetAbilityDescription(int abilityNumber) => abilityDescriptions[abilityNumber];
 
         public void AddAbilityDescriptions(string description) => abilityDescriptions.Add(description);
         
+    }
+
+    public class Warrior : Unit
+    {
+        public int Rage { get; private set; }
+        public const int MaxRage = 2;
+        private int _rageBuffTurns;
+        private readonly int _baseDamage;
+
+        public Warrior(int damage, int maxHealth) : base(damage, maxHealth)
+        {
+            _baseDamage = damage;
+        }
+
+        public void AddRage()
+        {
+            if (Rage < MaxRage)
+            {
+                Rage++;
+            }
+        }
+
+        public void ActivateRageBuff()
+        {
+            if (Rage < MaxRage)
+                return;
+
+            Damage = (int)(_baseDamage * 3.5f);
+            _rageBuffTurns = 3;
+            Rage = 0;
+        }
+
+        public void UpdateRageBuff()
+        {
+            if (_rageBuffTurns > 0)
+            {
+                _rageBuffTurns--;
+                if (_rageBuffTurns == 0)
+                {
+                    Damage = _baseDamage;
+                }
+            }
+        }
+    }
+    public class Mage : Unit
+    {
+        public Mage(int damage, int maxHealth) : base(damage, maxHealth) { }
+    }
+
+    public class Assassin : Unit
+    {
+        private readonly Random _random = new();
+
+        public Assassin(int damage, int maxHealth) : base(damage, maxHealth) { }
+
+        public bool TryCriticalStrike() => _random.Next(100) < 20;
     }
 }

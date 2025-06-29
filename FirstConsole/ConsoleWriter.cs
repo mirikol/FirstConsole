@@ -81,5 +81,21 @@ namespace FirstConsole
             Console.WriteLine($"Щит игрока {safeDefender} блокировал атаку {safeAttacker}!");
             Console.WriteLine();
         }
+
+        public void WriteCriticalStrike(string attacker)
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine($"Критический удар {attacker}!");
+            Console.ResetColor();
+        }
+
+        public void WriteRageStatus(int rage, int maxRage)
+        {
+            Console.Write($"Ярость: ");
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.Write($"{rage} / {maxRage}");
+            Console.ResetColor();
+            Console.WriteLine();
+        }
     }
 }

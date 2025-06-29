@@ -28,7 +28,7 @@ namespace FirstConsole
                    ApplyWeaponDamage(_enemyWeapon, MyUnit, OpponentUnit);
                     break;
                 case 2:
-                    int modifiedDamage = OpponentUnit.Damage * _secondAbilityModifier;
+                    int modifiedDamage = MyUnit.Damage * _secondAbilityModifier;
                     ApplyDamage(MyUnit.Damage, MyUnit, MyUnit);
                     ApplyDamage(modifiedDamage, MyUnit, OpponentUnit);
                     break;

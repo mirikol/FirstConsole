@@ -4,30 +4,38 @@ namespace FirstConsole
 {
     public class Player : Character
     {
-        private readonly Weapon _playerWeapon;
         private readonly Weapon _fireballWeapon;
-        public string Name { get; }
         public int FireballDamage => _fireballWeapon.Damage;
+
         public Player(string name, Unit playerUnit, Unit enemyUnit, Input input, ConsoleWriter writer)
             : base(playerUnit, enemyUnit, input, writer)
         {
             Name = name;
-
             _fireballWeapon = new Weapon {Damage = 200};
+            InitializeAbilities();            
+        }
 
-            _playerWeapon = new Weapon
+        private void InitializeAbilities()
+        {
+            string classAbility = MyUnit switch
             {
-                Damage = playerUnit.Damage,
-                Effect = EffectType.Ice
+                Warrior => $"Удар мечом (урон {MyUnit.Damage})",
+                Mage => $"Ледяная стрела (урон {MyUnit.Damage} + огонь)",
+                Assassin => $"Скрытый удар (урон {MyUnit.Damage} + шанс крита)",
+                _ => $"Удар оружием (урон {MyUnit.Damage})"
             };
 
-            MyUnit.AddAbilityDescriptions($"Ударить оружием (урон {MyUnit.Damage} + лёд)");
+            MyUnit.AddAbilityDescriptions(classAbility);
             MyUnit.AddAbilityDescriptions($"Щит: следующая атака противника не наносит урона");
-            MyUnit.AddAbilityDescriptions($"Огненный шар: наносит урон в размере {FireballDamage} единиц");
+            MyUnit.AddAbilityDescriptions($"Огненный шар: наносит урон в размере {_fireballWeapon.Damage} единиц");
         }
 
         public override void Turn()
         {
+            var warrior = MyUnit as Warrior;
+
+            warrior?.UpdateRageBuff();
+
             Writer.WriteUnitHealth("Ваше здоровье", MyUnit);
             Writer.WriteUnitHealth("Здоровье противника", OpponentUnit);
             Console.WriteLine();
@@ -38,7 +46,17 @@ namespace FirstConsole
             switch (InputHandler.PlayerCommandNumber)
             {
                 case 1:
-                    ApplyWeaponDamage(_playerWeapon, MyUnit, OpponentUnit);
+                    if (warrior != null)
+                    {
+                        warrior.AddRage();
+                        if (warrior.Rage == Warrior.MaxRage)
+                        {
+                            Writer.WriteRageStatus(warrior.Rage, Warrior.MaxRage);
+                            warrior.ActivateRageBuff();
+                        }
+                    }
+                    ApplyMainWeaponDamage();
+
                     break;
                 case 2:
                     MyUnit.ShieldCount = 1;
