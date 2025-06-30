@@ -1,4 +1,5 @@
 ﻿using System;
+using static FirstConsole.Interfaces;
 
 namespace FirstConsole
 {
@@ -6,45 +7,46 @@ namespace FirstConsole
     {
         public string Name { get; set; }
 
-        protected readonly Unit MyUnit;
-        protected readonly Unit OpponentUnit;
-        protected readonly Input InputHandler;
+        protected readonly IUnit MyUnit;
+        protected readonly IUnit OpponentUnit;
+        protected readonly Input inputHandler;
         protected readonly ConsoleWriter Writer;
 
-        protected Character(Unit myUnit, Unit opponentUnit, Input input, ConsoleWriter writer)
+        protected Character(
+            IUnit myUnit,
+            IUnit opponentUnit,
+            Input input,
+            ConsoleWriter writer)
         {
             MyUnit = myUnit;
             OpponentUnit = opponentUnit;
-            InputHandler = input;
+            inputHandler = input;
             Writer = writer;
         }
         public abstract void Turn();
 
-        protected virtual void ApplyDamage(int damage, Unit source, Unit target)
+        protected virtual void ApplyDamage(int damage, IUnit source, IUnit target)
         {
             target.TakeDamage(damage, source, false);
         }
 
-        protected virtual void ApplyWeaponDamage(Weapon weapon, Unit source, Unit target)
+        protected virtual void ApplyWeaponDamage(Weapon weapon, IUnit source, IUnit target)
         {
             int finalDamage = weapon.Damage;
 
-            if (source == MyUnit)
+            if (source == MyUnit && source is ICriticalStrike striker && striker.TryCriticalStrike())
             {
-                switch (MyUnit)
+                finalDamage *= 2;
+                Writer.WriteCriticalStrike(source.Name);
+            }
+
+            if (source is Mage)
+            {
+                weapon = new Weapon()
                 {
-                    case Assassin assassin when assassin.TryCriticalStrike():
-                        finalDamage *= 2;
-                        Writer.WriteCriticalStrike(Name);
-                        break;
-                    case Mage:
-                        weapon = new Weapon()
-                        {
-                            Damage = weapon.Damage,
-                            Effect = EffectType.Fire
-                        };
-                        break;
-                }
+                    Damage = weapon.Damage,
+                    Effect = EffectType.Fire
+                };
             }
 
             target.TakeDamage(
@@ -57,8 +59,6 @@ namespace FirstConsole
                 true
                 );
         }
-
-        protected bool IsAlive => MyUnit.IsAlive;
 
         protected Weapon GetCurrentWeapon(EffectType effect = EffectType.None)
         {

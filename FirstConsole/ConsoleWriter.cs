@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using static FirstConsole.Interfaces;
 
 namespace FirstConsole
 {
@@ -47,22 +48,24 @@ namespace FirstConsole
             }
         }
 
-        public void WriteUnitHealth(string owner, Unit unit)
+        public void WriteUnitHealth(string owner, IDamageable damageable)
         {
-            float healthPercentage = (float)unit.CurrentHealth / unit.MaxHealth * 100;
-            Console.WriteLine($"{owner}: ");
-
-            Console.ForegroundColor = healthPercentage > 10 ? ConsoleColor.Green : ConsoleColor.Red;
-            Console.WriteLine(unit.CurrentHealth);
-            Console.ResetColor();
+            if (damageable is Unit unit)
+            {
+                float healthPercentage = (float)unit.CurrentHealth / unit.MaxHealth * 100;
+                Console.WriteLine($"{owner}: ");
+                Console.ForegroundColor = healthPercentage > 10 ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.WriteLine(unit.CurrentHealth);
+                Console.ResetColor();
+            }
         }
 
-        public void WriteAllAbilities(string message, Unit unit)
+        public void WriteAllAbilities(string message, IHasAbilities abilityOwner)
         {
             Console.WriteLine($"{message}");
-            for (int i = 0; i < unit.AbilityCount; i++)
+            for (int i = 0; i < abilityOwner.AbilityCount; i++)
             {
-                Console.WriteLine($"{i+1}. {unit.GetAbilityDescription(i)}");
+                Console.WriteLine($"{i+1}. {abilityOwner.GetAbilityDescription(i)}");
             }
             Console.WriteLine();
         }

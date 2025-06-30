@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using static FirstConsole.Interfaces;
 namespace FirstConsole
 {
-    public class Unit
+    public class Unit : IUnit, IHasAbilities
     {
         private int _damage;
         private int maxHealth;
@@ -25,7 +26,7 @@ namespace FirstConsole
         public int CurrentHealth
         {
             get => currentHealth;
-            set
+            private set
             {
                 currentHealth = value;
                 if (currentHealth <= 0)
@@ -62,7 +63,7 @@ namespace FirstConsole
             damageHistory[AttackType.Heal] = new List<float>();
         }
                 
-        public virtual void TakeDamage(int damage, Unit origin, bool isWeaponDamage)
+        public virtual void TakeDamage(int damage, IUnit origin, bool isWeaponDamage)
         {
             lastDamageFromWeapon = isWeaponDamage;
 
@@ -86,7 +87,7 @@ namespace FirstConsole
 
         }
 
-        public void TakeDamage(Weapon weapon, Unit origin)
+        public void TakeDamage(Weapon weapon, IUnit origin)
         {
             TakeDamage(
                 DamageCalculator.CalculateAttackWithSpecialEffect(
@@ -105,10 +106,10 @@ namespace FirstConsole
         
     }
 
-    public class Warrior : Unit
+    public class Warrior : Unit, IUpdatable
     {
         public int Rage { get; private set; }
-        public const int MaxRage = 2;
+        public const int MaxRage = 4;
         private int _rageBuffTurns;
         private readonly int _baseDamage;
 
@@ -131,7 +132,7 @@ namespace FirstConsole
                 return;
 
             Damage = (int)(_baseDamage * 3.5f);
-            _rageBuffTurns = 3;
+            _rageBuffTurns = 2;
             Rage = 0;
         }
 
@@ -146,13 +147,14 @@ namespace FirstConsole
                 }
             }
         }
+        public void Update() => UpdateRageBuff();
     }
     public class Mage : Unit
     {
         public Mage(int damage, int maxHealth) : base(damage, maxHealth) { }
     }
 
-    public class Assassin : Unit
+    public class Assassin : Unit, ICriticalStrike
     {
         private readonly Random _random = new();
 

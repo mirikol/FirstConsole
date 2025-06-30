@@ -13,16 +13,20 @@ namespace FirstConsole
         public Enemy(Unit playerUnit, Unit enemyUnit, Input input, ConsoleWriter writer)
             : base(enemyUnit, playerUnit, input, writer)
         {
-            _enemyWeapon = new Weapon
-            {
-                Damage = enemyUnit.Damage,
-                Effect = EffectType.Fire
-            };
+            _enemyWeapon = new Weapon { Damage = enemyUnit.Damage, Effect = EffectType.Fire };
+            InitializeAbilities();
+        }
+
+        private void InitializeAbilities()
+        {
+            MyUnit.AddAbilityDescriptions($"Атака: наносит {MyUnit.Damage} урона (+огонь)");
+            MyUnit.AddAbilityDescriptions($"Ярость: наносит себе {MyUnit.Damage} и врагу {MyUnit.Damage * _secondAbilityModifier})");
+            MyUnit.AddAbilityDescriptions($"Контратака: если последний урон от оружия, наносит себе {_thirdAbilityValue}, иначе лечит на {_thirdAbilityValue}");
         }
         
         public override void Turn()
         {
-            switch (InputHandler.GetAICommandNumber(AbilitiesCount))
+            switch (inputHandler.GetAICommandNumber(AbilitiesCount))
             {
                 case 1:
                    ApplyWeaponDamage(_enemyWeapon, MyUnit, OpponentUnit);

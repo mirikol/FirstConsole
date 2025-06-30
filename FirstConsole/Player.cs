@@ -43,7 +43,7 @@ namespace FirstConsole
             Writer.WriteAllAbilities($"{Name}! Выберите действие: ", MyUnit);
 
 
-            switch (InputHandler.PlayerCommandNumber)
+            switch (inputHandler.PlayerCommandNumber)
             {
                 case 1:
                     if (warrior != null)
